@@ -7,8 +7,8 @@ Original file is located at
     https://colab.research.google.com/drive/1hBb-QbNYXVCguZsWJWtkVumfrZ2mrsq5
 """
 
-!pip install torch torchvision torchaudio
-!pip install ultralytics
+# !pip install torch torchvision torchaudio
+# !pip install ultralytics
 
 import time
 
@@ -42,7 +42,7 @@ label_paths_outside = glob(labels_path_outside)
 print(f"Number of label files inside the folder: {len(label_paths_inside)}")
 print(f"Number of label files outside the folder: {len(label_paths_outside)}")
 
-!pip install Pillow
+# !pip install Pillow
 
 from PIL import Image
 
@@ -172,8 +172,8 @@ move_files(val_images, resized_inside_folder, resized_outside_folder, '/content/
 
 print("Dataset successfully split into train, test, and validation sets.")
 
-!pip install ultralytics
-!pip install xmltodict
+# !pip install ultralytics
+# !pip install xmltodict
 
 import xmltodict
 import os
@@ -229,7 +229,44 @@ for xml_file in label_paths_outside:
 
 print("Conversion complete!")
 
+import os
 
+
+labels_path_val = '/content/drive/MyDrive/outside/Annotations_XML/*.xml'
+label_paths_val = glob(labels_path_val)
+
+# Directory to save the YOLO label files for the validation set
+output_val_dir = '/content/dataset/labels/val'
+
+# Make sure the directory exists
+os.makedirs(output_val_dir, exist_ok=True)
+
+# Re-run the XML-to-YOLO conversion for validation set
+for xml_file in label_paths_val:
+    convert_xml_to_yolo(xml_file, output_val_dir)
+
+print("Label conversion complete for  outside validation set!")
+
+import os
+from glob import glob
+
+# Path for the inside validation XML files
+labels_path_val_inside = '/content/drive/MyDrive/inside/Annotations_XML/*.xml'
+
+# Get all the XML files for the inside validation set
+label_paths_val_inside = glob(labels_path_val_inside)
+
+# Directory to save the YOLO label files for the validation set
+output_val_dir = '/content/dataset/labels/val'
+
+# Make sure the directory exists
+os.makedirs(output_val_dir, exist_ok=True)
+
+# Re-run the XML-to-YOLO conversion for the inside validation set
+for xml_file in label_paths_val_inside:
+    convert_xml_to_yolo(xml_file, output_val_dir)
+
+print("Label conversion complete for inside validation set!")
 
 # Define YAML configuration for YOLOv8
 yaml_content = """
@@ -247,6 +284,8 @@ with open('/content/fire_smoke.yaml', 'w') as yaml_file:
     yaml_file.write(yaml_content)
 
 print("YAML configuration file created!")
+
+
 
 from ultralytics import YOLO
 
@@ -276,7 +315,35 @@ model.train(
 results = model.val()
 print(results)  # This will print precision, recall, mAP metrics for the test set
 
-!cp runs/detect/train/weights/best.pt /content/drive/MyDrive/best_yolov8n_model.pt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
