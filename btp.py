@@ -7,8 +7,7 @@ Original file is located at
     https://colab.research.google.com/drive/1hBb-QbNYXVCguZsWJWtkVumfrZ2mrsq5
 """
 
-# !pip install torch torchvision torchaudio
-# !pip install ultralytics
+
 
 import time
 
@@ -72,7 +71,7 @@ def display_image(image_path):
         plt.show()
 
 
-image_path = '/content/drive/MyDrive/inside/images/inside13.jpg'
+image_path = '/content/drive/MyDrive/inside/images/inside163.jpg'
 display_image(image_path)
 
 import multiprocessing
@@ -175,6 +174,8 @@ print("Dataset successfully split into train, test, and validation sets.")
 # !pip install ultralytics
 # !pip install xmltodict
 
+
+
 import xmltodict
 import os
 class_names = ['fire', 'smoke']
@@ -268,9 +269,19 @@ for xml_file in label_paths_val_inside:
 
 print("Label conversion complete for inside validation set!")
 
+import zipfile
+import os
+
+# Path to your uploaded zip file
+zip_path = '/content/drive/MyDrive/dataset.zip'  # Or the path where you uploaded it
+
+# Unzipping the file
+with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+    zip_ref.extractall('/content/FIRE_SMOKE_DATA')
+
 # Define YAML configuration for YOLOv8
 yaml_content = """
-path: /content/dataset  # Dataset root directory
+path: /content/FIRE_SMOKE_DATA  # Dataset root directory
 train: images/train  # Train images (relative to 'path')
 val: images/val  # Validation images (relative to 'path')
 test: images/test  # Test images (optional)
@@ -285,95 +296,53 @@ with open('/content/fire_smoke.yaml', 'w') as yaml_file:
 
 print("YAML configuration file created!")
 
+# !pip install ultralytics==8.0.20
 
 
-from ultralytics import YOLO
+from IPython import display
+display.clear_output()
 
-# Load the YOLOv8n model pretrained on COCO
-model = YOLO('yolov8n.pt')
+import ultralytics
+ultralytics.checks()
 
-# Train the model using faster tuning settings
-model.train(
-    data='/content/fire_smoke.yaml',  # Your dataset YAML file
-    epochs=10,                       # Lower epochs for faster training
-    imgsz=320,                        # Smaller image size for speed
-    batch=16,                         # Suitable batch size for your CPU
-    cache=True,                       # Enable caching for faster dataset loading
-    workers=2,                        # Reduce workers to prevent CPU overload
-    optimizer='Adam',                 # Adam optimizer is faster for tuning
-    freeze=10,                        # Freeze backbone layers for faster training
-    verbose=False,                    # Disable verbose logging to speed up training
-    patience=20,                      # Early stopping after 20 epochs of no improvement
-    amp=True                          # Enable automatic mixed precision to reduce memory usage
-)
+# !wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt
 
-# Commented out IPython magic to ensure Python compatibility.
+# !pip install -U albumentations
 
-# %load_ext tensorboard
-# %tensorboard --logdir runs/detect
+# !yolo task=detect mode=train model=yolov8n.yaml data=/content/fire_smoke.yaml epochs=50 imgsz=640
 
-results = model.val()
-print(results)  # This will print precision, recall, mAP metrics for the test set
+# !yolo task=detect mode=val model=runs/detect/train/weights/best.pt data=/content/fire_smoke.yaml imgsz=640
 
+# !yolo task=detect mode=predict model=runs/detect/train/weights/best.pt source=/content/FIRE_SMOKE_DATA/images/test/inside1005.jpg imgsz=320 save=True
 
+from IPython.display import Image
+Image(filename='runs/detect/predict/inside1005.jpg')  # Adjust the path if needed
 
+import os
+import random
+from IPython.display import Image, display
 
+# Define the test folder path
+test_folder = '/content/FIRE_SMOKE_DATA/images/test'
 
+# List all image files in the test folder
+test_images = [f for f in os.listdir(test_folder) if f.endswith(('.jpg', '.jpeg', '.png'))]
 
+# Randomly select 10 images
+random_images = random.sample(test_images, 10)
 
+# YOLOv8 prediction loop
+for idx, img_name in enumerate(random_images, start=1):
+    img_path = os.path.join(test_folder, img_name)
 
+    # Run YOLOv8 prediction on the image
+    # !yolo task=detect mode=predict model=runs/detect/train/weights/best.pt source={img_path} imgsz=320 save=True
 
+    # Find the latest prediction folder
+    prediction_folder = sorted([f for f in os.listdir('runs/detect') if f.startswith('predict')], key=lambda x: os.path.getmtime(f'runs/detect/{x}'))[-1]
 
+    # Display the predicted image from the latest folder
+    pred_img_path = f'runs/detect/{prediction_folder}/{img_name}'
+    display(Image(filename=pred_img_path))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+print("Predictions for 10 random test images have been made and displayed.")
